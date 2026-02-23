@@ -66,7 +66,6 @@ Given:- tox= 4.1E-9
         The given graph represents the frequency response (AC analysis) of a Common Source NMOS amplifier, showing the variation of voltage gain with frequency. At low and mid frequencies, the amplifier provides a nearly constant gain of about 10.4 dB, indicating stable amplification in the midband region. As the frequency increases, the gain gradually decreases due to the effect of parasitic capacitances and the load capacitor (C1), which introduce poles in the circuit. The −3 dB point, observed around 3.63 MHz, represents the upper cutoff frequency, where the gain reduces to approximately 7.46 dB, defining the bandwidth limit of the amplifier. Beyond this frequency, the gain drops rapidly, showing reduced amplification at higher frequencies.
 
 
-        To 
 
 
                                                  
