@@ -640,3 +640,45 @@ Hence, the bandwidth of the amplifier is approximately:
 Bandwidth ≈ 37.66 MHz
 
 This confirms that the circuit behaves as a low-pass amplifier with a finite high-frequency limit determined by device parasitics.
+
+
+## Inference
+
+The Common Source (CS) amplifier employing a PMOS active load and source degeneration was successfully designed and implemented using TSMC 180 nm CMOS technology in LTSpice while satisfying the specified design constraints:
+
+- Supply Voltage : VDD = 1.8 V  
+- Power Consumption : P ≤ 1 mW  
+- Load Capacitance : CL = 10 pF  
+
+A drain current of approximately 200 µA was selected to ensure reliable biasing while maintaining the total power dissipation within limits:
+
+P = VDD × ID ≈ 1.8 × 200 µA = 0.36 mW
+
+which comfortably satisfies the power constraint.
+
+The DC operating point confirms that both NMOS and PMOS transistors operate in the saturation region, ensuring proper small-signal amplification. The bias voltages were chosen such that the output node is positioned close to mid-supply, enabling a near-symmetrical output voltage swing and minimizing signal distortion.
+
+The PMOS transistor functions as an active load, providing a large effective output resistance compared to a passive resistor, thereby improving voltage gain without increasing power consumption.
+
+Theoretical and simulated results show reasonable agreement:
+
+- Theoretical Gain ≈ 15.38 V/V (23.74 dB)  
+- Simulated Transient Gain ≈ 24.53 V/V (27.79 dB)  
+- Simulated Midband Gain (AC Analysis) ≈ 27–28 dB  
+- −3 dB Bandwidth ≈ 37–40 MHz  
+- Unity Gain Frequency ≈ 1.5 GHz  
+
+The deviation between theoretical and simulated gain arises due to practical second-order effects included in the TSMC device models such as:
+
+- Channel Length Modulation
+- Mobility degradation
+- Body effect
+- Parasitic capacitances (Cgs, Cgd, Cdb)
+
+AC analysis indicates that the load capacitance (CL) together with the output resistance forms the dominant pole at the output node, which limits the high-frequency response and defines the amplifier bandwidth.
+
+The inclusion of source degeneration introduces local negative feedback. This improves bias stability, enhances linearity, and reduces sensitivity to process variations. However, it also reduces the achievable voltage gain compared to an ideal CS amplifier without degeneration.
+
+Transient analysis confirms proper amplifier operation, showing an amplified and inverted output waveform with minimal distortion around the bias point.
+
+Hence, the designed Common Source amplifier successfully meets the required power constraint and demonstrates correct DC biasing, stable operation in saturation, expected voltage gain characteristics, and appropriate frequency response behavior suitable for low-power analog applications.
