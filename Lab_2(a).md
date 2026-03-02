@@ -23,7 +23,7 @@ A Common Source (CS) amplifier is one of the most widely used MOSFET amplifier c
 
 In the proposed design, a PMOS transistor is used as an active load instead of a conventional drain resistor. Additionally, a source degeneration resistor is connected at the source terminal of the NMOS transistor to improve bias stability and linearity.
 
-###PMOS Active Load
+### PMOS Active Load
 
 
 
