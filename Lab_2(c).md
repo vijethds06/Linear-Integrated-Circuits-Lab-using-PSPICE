@@ -298,3 +298,553 @@ Thus, the circuit achieves stable small-signal amplification with controlled gai
 ## Design
 
 
+
+### Given Parameters
+
+- **Technology** : TSMC 180 nm CMOS  
+- **Supply Voltage** :
+
+$$
+V_{DD} = 1.8V
+$$
+
+- **Power Constraint** :
+
+$$
+P \leq 1mW
+$$
+
+- **Channel Length** :
+
+$$
+L_n = 560nm
+$$
+
+- **Threshold Voltage** :
+
+$$
+V_{TN} \approx 0.366V
+$$
+
+- **Electron Mobility** :
+
+$$
+\mu_n = 273.81 \times 10^{-4} \; m^2/Vs
+$$
+
+- **Load Capacitance** :
+
+$$
+C_L = 10pF
+$$
+
+- **Gate Oxide Thickness** :
+
+$$
+t_{ox} = 4.1 \times 10^{-9} m
+$$
+
+
+
+### Power Constraint
+
+The total power consumed by the circuit is:
+
+$$
+P = V_{DD} I_D
+$$
+
+Since:
+
+$$
+P \leq 1 \times 10^{-3} W
+$$
+
+Maximum allowable drain current becomes:
+
+$$
+I_D \leq \frac{1 \times 10^{-3}}{1.8}
+$$
+
+$$
+I_D \leq 555.5 \mu A
+$$
+
+To remain safely within limits while maintaining reasonable gain:
+
+$$
+I_D = 200 \mu A
+$$
+
+Power dissipated:
+
+$$
+P = 1.8 \times 200 \mu A
+$$
+
+$$
+P = 0.36 mW
+$$
+
+Since:
+
+$$
+0.36mW < 1mW
+$$
+
+the power constraint is satisfied.
+
+
+
+## 3.2 Bias Point Selection
+
+Assumed overdrive voltage:
+
+$$
+V_{OV} = 0.25V
+$$
+
+---
+
+### NMOS M1 Bias
+
+For M1:
+
+$$
+V_{GS1} = V_{OV} + V_{TN}
+$$
+
+$$
+V_{GS1} = 0.25 + 0.366
+$$
+
+$$
+V_{GS1} = 0.61V
+$$
+
+Since M3 is diode-connected:
+
+$$
+V_{S1} = V_{GS3}
+$$
+
+$$
+V_{S1} = 0.61V
+$$
+
+Therefore, input gate voltage becomes:
+
+$$
+V_{IN} = V_{GS1} + V_{S1}
+$$
+
+$$
+V_{IN} = 0.61 + 0.61
+$$
+
+$$
+V_{IN} = 1.22V
+$$
+
+
+
+### Output Voltage Selection
+
+For near-symmetrical output swing in this configuration:
+
+$$
+V_{OUT} = \frac{V_{DD}}{2} + V_{DS3}
+$$
+
+$$
+V_{OUT} = 0.9 + 0.61
+$$
+
+$$
+V_{OUT} = 1.51V
+$$
+
+Drain-to-source voltage of M1:
+
+$$
+V_{DS1} = V_{OUT} - V_{S1}
+$$
+
+$$
+V_{DS1} = 1.51 - 0.61
+$$
+
+$$
+V_{DS1} = 0.90V
+$$
+
+Since:
+
+$$
+V_{DS1} > V_{OV}
+$$
+
+M1 operates in saturation.
+
+---
+
+### NMOS M3 (Diode-Connected) Bias
+
+For M3:
+
+$$
+V_{GS3} = V_{OV} + V_{TN}
+$$
+
+$$
+V_{GS3} = 0.61V
+$$
+
+Since M3 is diode-connected:
+
+$$
+V_{DS3} = V_{GS3}
+$$
+
+$$
+V_{DS3} = 0.61V
+$$
+
+Since:
+
+$$
+V_{DS3} > V_{OV}
+$$
+
+M3 operates in saturation.
+
+
+
+### PMOS M2 Bias
+
+For PMOS M2:
+
+$$
+V_{SG2} = V_{OV} + |V_{TP}|
+$$
+
+$$
+V_{SG2} = 0.25 + 0.39
+$$
+
+$$
+V_{SG2} = 0.64V
+$$
+
+Drain-to-source voltage:
+
+$$
+V_{SD2} = V_{DD} - V_{OUT}
+$$
+
+$$
+V_{SD2} = 1.8 - 1.51
+$$
+
+$$
+V_{SD2} = 0.29V
+$$
+
+Since:
+
+$$
+V_{SD2} > V_{OV}
+$$
+
+M2 operates in saturation.
+
+Thus, all three transistors operate in saturation ensuring proper amplifier operation.
+
+
+
+### Width Calculation
+
+The drain current in saturation is given by:
+
+$$
+I_D = \frac{1}{2} \mu C_{ox} \frac{W}{L} (V_{OV})^2
+$$
+
+Rearranging:
+
+$$
+W = \frac{2 I_D L}{\mu C_{ox} (V_{OV})^2}
+$$
+
+Given:
+
+$$
+I_D = 200 \mu A
+$$
+
+$$
+L = 560nm
+$$
+
+$$
+V_{OV} = 0.25V
+$$
+
+
+
+### NMOS M1 Width
+
+For NMOS:
+
+$$
+W_{M1} =
+\frac{2 \times 200 \times 10^{-6} \times 560 \times 10^{-9}}
+{2.365 \times 10^{-4} \times (0.25)^2}
+$$
+
+$$
+W_{M1} \approx 15.15 \mu m
+$$
+
+After tuning in simulation to obtain exact:
+
+$$
+I_D = 200 \mu A
+$$
+
+Final width:
+
+$$
+W_{M1} = 75.75 \mu m
+$$
+
+
+
+### NMOS M3 Width
+
+Since M3 also carries the same current:
+
+$$
+W_{M3} \approx 15.15 \mu m
+$$
+
+After tuning:
+
+$$
+W_{M3} = 75.75 \mu m
+$$
+
+
+
+### PMOS M2 Width
+
+For PMOS:
+
+$$
+W_{M2} =
+\frac{2 \times 200 \times 10^{-6} \times 560 \times 10^{-9}}
+{9.98 \times 10^{-5} \times (0.25)^2}
+$$
+
+$$
+W_{M2} \approx 35.86 \mu m
+$$
+
+After tuning:
+
+$$
+W_{M2} = 57.25 \mu m
+$$
+
+
+
+Thus, transistor widths were refined through simulation to compensate for non-ideal second-order effects while maintaining the desired drain current and proper saturation conditions.
+
+
+## DC Analysis
+
+<img width="1918" height="1078" alt="dc" src="https://github.com/user-attachments/assets/be182e8d-0612-4e24-add7-d7da8a604db4" />
+
+## DC Operating Point Analysis (Lab 2c)
+
+From the DC operating point results, the supply voltage is:
+
+$$
+V_{DD} = 1.8V
+$$
+
+The input bias voltage is:
+
+$$
+V_{IN} = 1.22V
+$$
+
+The output node settles at:
+
+$$
+V_{OUT} \approx 0.903V
+$$
+
+---
+
+### NMOS M1 Analysis
+
+The source voltage of M1 is approximately:
+
+$$
+V_{S1} \approx 0.5419V
+$$
+
+Thus, the gate-to-source voltage becomes:
+
+$$
+V_{GS1} = V_{IN} - V_{S1}
+$$
+
+$$
+V_{GS1} = 1.22 - 0.5419
+$$
+
+$$
+V_{GS1} \approx 0.678V
+$$
+
+Given:
+
+$$
+V_{TN} \approx 0.366V
+$$
+
+The overdrive voltage is:
+
+$$
+V_{OV1} = V_{GS1} - V_{TN}
+$$
+
+$$
+V_{OV1} \approx 0.678 - 0.366
+$$
+
+$$
+V_{OV1} \approx 0.312V
+$$
+
+Drain-to-source voltage:
+
+$$
+V_{DS1} = V_{OUT} - V_{S1}
+$$
+
+$$
+V_{DS1} = 0.903 - 0.5419
+$$
+
+$$
+V_{DS1} \approx 0.361V
+$$
+
+Since:
+
+$$
+V_{DS1} > V_{OV1}
+$$
+
+M1 operates in the saturation region.
+
+---
+
+### Diode-Connected NMOS M3
+
+Because M3 is diode-connected:
+
+$$
+V_{DS3} = V_{GS3}
+$$
+
+From simulation:
+
+$$
+V_{GS3} \approx 0.5419V
+$$
+
+Since:
+
+$$
+V_{DS3} > V_{OV}
+$$
+
+M3 also operates in saturation and properly establishes the bias current.
+
+---
+
+### PMOS Active Load M2
+
+The PMOS gate voltage is:
+
+$$
+V_G = 1.16V
+$$
+
+Source is at:
+
+$$
+V_S = 1.8V
+$$
+
+Thus:
+
+$$
+V_{SG2} = 1.8 - 1.16
+$$
+
+$$
+V_{SG2} = 0.64V
+$$
+
+This satisfies the overdrive requirement for PMOS operation in saturation.
+
+---
+
+### Drain Current Verification
+
+The simulated drain current is approximately:
+
+$$
+I_D \approx 199 \mu A
+$$
+
+Power consumption:
+
+$$
+P = V_{DD} \times I_D
+$$
+
+$$
+P = 1.8 \times 199\mu A
+$$
+
+$$
+P \approx 0.358mW
+$$
+
+Since:
+
+$$
+0.358mW < 1mW
+$$
+
+the power constraint is satisfied.
+
+---
+
+## Conclusion of DC Analysis
+
+The DC operating point confirms that:
+
+- All three transistors (M1, M2, M3) operate in saturation.
+- The desired bias current of approximately 200 µA is achieved.
+- The output voltage is positioned near mid-supply, allowing reasonable signal swing.
+- Power consumption remains well within the specified 1 mW limit.
+
+Hence, the circuit is correctly biased and ready for small-signal amplification.
+
