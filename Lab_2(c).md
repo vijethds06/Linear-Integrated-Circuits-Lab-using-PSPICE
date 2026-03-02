@@ -665,7 +665,7 @@ Thus, transistor widths were refined through simulation to compensate for non-id
 
 <img width="1918" height="1078" alt="dc" src="https://github.com/user-attachments/assets/be182e8d-0612-4e24-add7-d7da8a604db4" />
 
-## DC Operating Point Analysis (Lab 2c)
+
 
 From the DC operating point results, the supply voltage is:
 
@@ -685,7 +685,7 @@ $$
 V_{OUT} \approx 0.903V
 $$
 
----
+
 
 ### NMOS M1 Analysis
 
@@ -751,7 +751,7 @@ $$
 
 M1 operates in the saturation region.
 
----
+
 
 ### Diode-Connected NMOS M3
 
@@ -775,7 +775,7 @@ $$
 
 M3 also operates in saturation and properly establishes the bias current.
 
----
+
 
 ### PMOS Active Load M2
 
@@ -803,7 +803,6 @@ $$
 
 This satisfies the overdrive requirement for PMOS operation in saturation.
 
----
 
 ### Drain Current Verification
 
@@ -835,9 +834,9 @@ $$
 
 the power constraint is satisfied.
 
----
 
-## Conclusion of DC Analysis
+
+### Conclusion of DC Analysis
 
 The DC operating point confirms that:
 
@@ -847,4 +846,221 @@ The DC operating point confirms that:
 - Power consumption remains well within the specified 1 mW limit.
 
 Hence, the circuit is correctly biased and ready for small-signal amplification.
+
+
+## Transient Analysis
+
+<img width="1918" height="1078" alt="transient" src="https://github.com/user-attachments/assets/49ae3887-8c17-4d9f-8aa4-34b3c1a2751e" />
+
+### Theoretical Gain Analysis
+
+For a Common Source amplifier with a PMOS active load and a diode-connected NMOS transistor at the source, the voltage gain is given by:
+
+$$
+A_v = \frac{-g_{m1} r_{o2}}{1 + \frac{g_{m1}}{g_{m3}}}
+$$
+
+
+
+### Transconductance Calculation
+
+The transconductance of M1 is:
+
+$$
+g_{m1} = \frac{2 I_D}{V_{OV}}
+$$
+
+Substituting:
+
+$$
+g_{m1} = \frac{2 \times 200 \times 10^{-6}}{0.25}
+$$
+
+$$
+g_{m1} = 1.6 \times 10^{-3} \; S
+$$
+
+Since M3 carries the same drain current:
+
+$$
+g_{m3} = 1.6 \times 10^{-3} \; S
+$$
+
+
+
+### Output Resistance of PMOS (M2)
+
+Assuming channel length modulation:
+
+$$
+r_{o2} = \frac{1}{\lambda I_D}
+$$
+
+Substituting:
+
+$$
+r_{o2} = \frac{1}{0.1 \times 200 \times 10^{-6}}
+$$
+
+$$
+r_{o2} = 50 \; k\Omega
+$$
+
+
+
+### Theoretical Voltage Gain
+
+Substituting values:
+
+$$
+A_v = \frac{1.6 \times 10^{-3} \times 50 \times 10^{3}}{1 + \frac{1.6 \times 10^{-3}}{1.6 \times 10^{-3}}}
+$$
+
+Since:
+
+$$
+\frac{g_{m1}}{g_{m3}} = 1
+$$
+
+The gain becomes:
+
+$$
+A_v = \frac{80}{2}
+$$
+
+$$
+A_v = 40
+$$
+
+
+
+### Gain in dB
+
+$$
+A_v(dB) = 20 \log_{10}(40)
+$$
+
+$$
+A_v(dB) = 32.04 \; dB
+$$
+
+
+
+### Simulated Gain (Transient Analysis)
+
+From the transient waveform measurements:
+
+### Input Peak-to-Peak Voltage
+
+$$
+V_{in(p-p)} = 1.2299V - 1.2190V
+$$
+
+$$
+V_{in(p-p)} = 0.0199V
+$$
+
+### Output Peak-to-Peak Voltage
+
+$$
+V_{out(p-p)} = 1.3454V - 00.6576V
+$$
+
+$$
+V_{out(p-p)} = 0.6879V
+$$
+
+---
+
+### Simulated Voltage Gain
+
+$$
+A_v = \frac{V_{out(p-p)}}{V_{in(p-p)}}
+$$
+
+$$
+A_v = \frac{0.6879}{0.0199}
+$$
+
+$$
+A_v \approx 34.567
+$$
+
+---
+
+### Simulated Gain in dB
+
+$$
+A_v(dB) = 20 \log_{10}(34.567)
+$$
+
+$$
+A_v(dB) \approx 30.773 \; dB
+$$
+
+
+
+### Comparison
+
+- **Theoretical Gain** ≈ 40 V/V (32.04 dB)  
+- **Simulated Gain** ≈ 25.05 V/V (27.97 dB)
+
+The reduction in simulated gain compared to theoretical gain is primarily due to:
+
+- Finite output resistance of M1  
+- Non-ideal behavior of the diode-connected transistor  
+- Mobility degradation  
+- Body effect  
+- Parasitic capacitances included in the 180nm TSMC model  
+
+Thus, the simulation results reasonably validate the theoretical estimation while accounting for practical second-order effects.
+
+
+### Difference Between Theoretical and Practical Gain
+
+The practical (simulated) voltage gain is lower than the theoretical gain due to non-ideal effects present in real MOSFET models. The theoretical analysis assumes ideal device behavior and simplified small-signal parameters, whereas simulation includes second-order effects.
+
+Finite output resistance of the transistors reduces the effective output resistance at the drain node, thereby lowering the achievable gain. In addition, the diode-connected NMOS introduces stronger source degeneration in practice due to its non-ideal small-signal resistance.
+
+Other factors such as channel length modulation, mobility degradation, body effect, and intrinsic parasitic capacitances further reduce the effective transconductance and output resistance compared to ideal assumptions.
+
+Hence, the observed difference between theoretical and simulated gain is expected and confirms realistic device behavior in CMOS implementations.
+
+
+
+##  AC Analysis
+
+<img width="1918" height="1078" alt="ac" src="https://github.com/user-attachments/assets/1a9d1637-37af-4253-8c2f-0a096805d42f" />
+
+
+
+The AC small-signal analysis of the Common Source (CS) amplifier with PMOS active load and diode-connected NMOS was carried out to evaluate the frequency response and bandwidth characteristics of the circuit.
+
+From the Bode magnitude plot, the amplifier exhibits a **midband voltage gain of approximately 30.26 dB** (≈ 32.6 V/V), indicating strong small-signal amplification under proper saturation biasing conditions. The gain remains nearly constant across the low and mid-frequency regions, confirming stable biasing and correct amplifier operation.
+
+The **−3 dB cutoff frequency occurs at approximately 49.2 MHz**, which defines the bandwidth of the amplifier. Up to this frequency, the amplifier maintains effective signal amplification with minimal attenuation.
+
+Beyond the cutoff frequency, the gain decreases rapidly due to intrinsic MOSFET parasitic capacitances such as gate-to-drain ($C_{gd}$), gate-to-source ($C_{gs}$), and drain-to-bulk capacitances. These parasitic elements introduce dominant poles at the output node along with the load capacitance, thereby limiting the high-frequency response.
+
+The phase response shows a phase shift approaching **−225° near the cutoff region**, which is consistent with the inverting behavior of a Common Source amplifier along with additional phase lag introduced by higher-order poles.
+
+Overall, the AC analysis confirms that the amplifier achieves high midband gain with a bandwidth extending into the tens of megahertz range, demonstrating proper small-signal amplification performance suitable for low-power analog CMOS applications.
+
+## Conclusion
+
+The Common Source (CS) amplifier employing a PMOS active load and a diode-connected NMOS source device was successfully designed and implemented using TSMC 180 nm CMOS technology in LTSpice while satisfying the specified design constraints of **$V_{DD}=1.8,V$** and **power consumption $P \leq 1,mW$**.
+
+The selected drain current of approximately **200 µA** ensured that the overall power dissipation remained within limits while providing sufficient transconductance for effective amplification. DC operating point analysis verified that all transistors operate in the saturation region, confirming proper biasing and stable small-signal operation.
+
+Transient analysis demonstrated correct amplifier behavior, producing an amplified and inverted output waveform with minimal distortion around the bias point. The diode-connected NMOS provided self-biasing and improved operating point stability through source degeneration, enhancing linearity and robustness against device variations.
+
+Theoretical and simulated gains show reasonable agreement, with minor deviations arising from practical second-order effects such as channel length modulation, body effect, mobility degradation, and intrinsic parasitic capacitances included in the device models.
+
+AC small-signal analysis confirmed a **midband gain of approximately 30 dB** and a **−3 dB bandwidth near 49 MHz**, indicating a wide useful frequency range. The dominant pole observed at higher frequencies is primarily due to the combined effect of load capacitance and MOSFET parasitic capacitances at the output node.
+
+Overall, the designed amplifier satisfies the required power constraint and demonstrates correct biasing, expected gain characteristics, stable frequency response, and reliable small-signal amplification performance suitable for low-power CMOS analog applications.
+
+
+
+
 
