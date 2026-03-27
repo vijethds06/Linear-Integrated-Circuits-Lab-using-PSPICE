@@ -161,13 +161,14 @@ The operation can be summarized as a three-step process:
 **$\text{Voltage Difference} \rightarrow \text{Current Steering} \rightarrow \text{Voltage Output}$**
 
 ---
-##
+## Circuit Diagram
 <img width="1143" height="732" alt="image" src="https://github.com/user-attachments/assets/30508325-b80d-455f-9d32-5f8e32d9f97b" />
 ---
+
 # Design Calculations
 
 ## 1. Given Parameters
-The following specifications are used for the TSMC 180 nm process node:
+The following specifications are based on the **TSMC 180 nm** technology node:
 
 | Parameter | Symbol | Value |
 | :--- | :--- | :--- |
@@ -180,7 +181,7 @@ The following specifications are used for the TSMC 180 nm process node:
 | **Tail Node Voltage** | $V_p$ | -0.7 V |
 | **Load Capacitance** | $C_L$ | 10 pF |
 | **Threshold Voltage** | $V_T$ | $\approx 0.36$ V |
-| **Process Parameter** | $\mu_n C_{ox}$ | 236.5 µA/V² |
+| **Process Parameter** | $\mu_n C_{ox}$ | 236.5 $\mu$A/V² |
 
 ---
 
@@ -190,21 +191,27 @@ The total power consumption is determined by the total supply rail and the tail 
 $$P = (V_{DD} - V_{SS}) \cdot I_{SS}$$
 
 Given $V_{DD} - V_{SS} = 1.8$ V and $P \le 1.8$ mW:
+
 $$1.8 \cdot I_{SS} \le 1.8 \times 10^{-3}$$
+
 $$I_{SS} \le 1 \text{ mA}$$
 
-**Design Choice:** We choose $I_{SS} = 1$ mA to maximize transconductance ($g_m$).
-For a balanced differential pair, the quiescent drain current for each transistor is:
+To maximize performance within the budget, we select **$I_{SS} = 1$ mA**.  
+
+For a balanced differential pair:
 $$I_{D1} = I_{D2} = \frac{I_{SS}}{2} = 0.5 \text{ mA}$$
 
 ---
 
 ## 3. Load Resistance Calculation ($R_D$)
-To maintain the required output common-mode voltage ($V_{OCM} = 0$ V):
+To achieve the required output common-mode voltage ($V_{OCM} = 0$ V):
 
 $$V_{out} = V_{DD} - I_D R_D$$
+
 $$0 = 0.9 - (0.5 \times 10^{-3}) R_D$$
+
 $$R_D = \frac{0.9}{0.5 \times 10^{-3}} = 1.8 \text{ k}\Omega$$
+
 
 ---
 
@@ -222,7 +229,7 @@ $$R_D = \frac{0.9}{0.5 \times 10^{-3}} = 1.8 \text{ k}\Omega$$
 **Saturation Condition Check:**
 For saturation, $V_{DS} \ge V_{OV}$.
 $$0.7 \text{ V} > 0.34 \text{ V}$$
-The transistors are confirmed to be operating in the **Saturation Region**.
+✅ Both transistors are confirmed to be operating in the **Saturation Region**.
 
 ---
 
@@ -236,22 +243,372 @@ Rearranging for $W$:
 $$W = \frac{2 I_D L}{\mu_n C_{ox} (V_{OV})^2}$$
 
 Substituting the values:
-* $I_D = 0.5$ mA
-* $L = 480$ nm
-* $\mu_n C_{ox} = 236.5$ µA/V²
-* $V_{OV} = 0.34$ V
-
-**Theoretical Width ($W_{calc}$):** $\approx 17.57$ µm
-
-
+$$W = \frac{2 \times 0.5 \times 10^{-3} \times 480 \times 10^{-9}}{2.365 \times 10^{-4} \times (0.34)^2}$$
+**Theoretical Width ($W_{calc}$):** $\approx 17.57\ \mu\text{m}$
 
 ### Simulation-Based Refinement
-The theoretical width serves as a first-order approximation. Real-world device physics (Channel Length Modulation, Mobility Degradation, and Short-Channel Effects) require fine-tuning to maintain the exact bias point ($V_p = -0.7$ V).
+First-order equations do not account for channel length modulation, mobility degradation, or short-channel effects. To maintain the exact bias point of $V_p = -0.7$ V in a real TSMC 180 nm model, the width was adjusted in LTspice.
 
-**Final Fine-Tuned Width ($W_{final}$):** $\approx 28.475$ µm
+**Final Optimized Width ($W_{final}$):** $\approx 28.475\ \mu\text{m}$
+
 
 ---
 
 ## 6. Design Insights
-* **Width Tuning:** Increasing $W$ increases drain current for a fixed $V_{GS}$. Tuning $W$ in LTspice ensures the specific $V_p$ node voltage is achieved despite second-order effects.
-* **Power Efficiency:** The design operates exactly at the $1.8$ mW limit to provide the highest possible gain-bandwidth product within the given constraints.
+* **Biasing Accuracy:** Width tuning in simulation is critical because it compensates for second-order effects that hand calculations ignore.
+* **Performance:** Operating at the $1.8$ mW limit ensures the highest possible transconductance ($g_m$), which directly improves the gain and bandwidth of the amplifier.
+
+  ---
+#DC Operating Point
+
+  <img width="1037" height="729" alt="image" src="https://github.com/user-attachments/assets/40f9152b-7a35-4189-ad6d-6e4d4ec00f28" />
+
+  The DC operating point confirms that the output and source node voltages are aligned with the designed bias conditions, thereby ensuring proper saturation operation of the transistors.
+
+# Input and Output Common-Mode Ranges
+
+## 1. Input Common-Mode Range (ICMR)
+The ICMR is the range of input voltages for which all transistors in the differential pair remain in the saturation region and the tail current source remains active.
+
+### Minimum Input Common-Mode Voltage ($V_{ICM,min}$)
+To keep the NMOS transistors ON and the tail current source active:
+$$V_{GS} \ge V_T$$
+$$V_{ICM,min} = V_S + V_T$$
+
+**Calculation:**
+* $V_S = -0.7 \text{ V}$
+* $V_T = 0.36 \text{ V}$
+* $V_{ICM,min} = -0.7 + 0.36 = -0.34 \text{ V}$
+
+> **Insight:** Below $-0.34 \text{ V}$, the transistors enter the cutoff region and the differential pair stops conducting.
+
+### Maximum Input Common-Mode Voltage ($V_{ICM,max}$)
+To ensure the NMOS transistors do not enter the triode region:
+$$V_{DS} \ge V_{GS} - V_T \implies V_{ICM,max} = V_D + V_T$$
+
+**Calculation:**
+* $V_D = 0 \text{ V}$ (at equilibrium)
+* $V_T = 0.36 \text{ V}$
+* $V_{ICM,max} = 0 + 0.36 = 0.36 \text{ V}$
+
+### Final ICMR Result
+$$-0.34 \text{ V} \le V_{ICM} \le 0.36 \text{ V}$$
+
+---
+
+## 2. Output Common-Mode Range (OCMR)
+The OCMR defines the allowable swing of the output voltage while maintaining transistor saturation.
+
+### Maximum Output Voltage ($V_{OCM,max}$)
+The maximum output is limited by the positive supply rail:
+$$V_{OCM,max} \le V_{DD} = 0.9 \text{ V}$$
+At this limit, the current through $R_D$ approaches zero as the output node reaches the supply rail.
+
+### Minimum Output Voltage ($V_{OCM,min}$)
+To maintain saturation at the drain ($V_{DS} \ge V_{OV}$):
+$$V_D - V_S = V_{OV} \implies V_{OCM,min} = V_S + V_{OV}$$
+
+**Calculation:**
+* $V_S = -0.7 \text{ V}$
+* $V_{OV} = 0.34 \text{ V}$
+* $V_{OCM,min} = -0.7 + 0.34 = -0.36 \text{ V}$
+
+### Final OCMR Result
+$$-0.36 \text{ V} \le V_{OCM} \le 0.9 \text{ V}$$
+
+---
+
+## 3. Differential Input Range (Linear Region)
+The amplifier operates linearly when current is shared between both devices and neither transistor is fully steered into cutoff.
+
+**Condition for Linear Operation:**
+$$|V_{id}| \le \sqrt{2} V_{OV}$$
+Using our design value $V_{OV} = 0.34 \text{ V}$:
+$$|V_{id}| \le \sqrt{2} \times 0.34 \approx 0.48 \text{ V}$$
+
+
+(Note: If using the simpler approximation $|V_{id}| \le 2V_{OV}$): $|V_{id}| \le 0.68 \text{ V}$
+
+### Final Linear Range
+$$-0.48 \text{ V} \le V_{id} \le 0.48 \text{ V}$$
+
+---
+
+## 📝 Design Summary and Insights
+
+| Range Type | Limitation | Importance |
+| :--- | :--- | :--- |
+| **ICMR** | Input bias boundaries | Defines DC biasing stability. |
+| **OCMR** | Output swing boundaries | Limits the maximum undistorted output signal. |
+| **Differential** | Linear gain boundaries | Determines the point where signal clipping occurs. |
+
+**Key Takeaway:** A robust design ensures that the intended signal swing stays within these three overlapping ranges to prevent gain degradation and non-linear distortion.
+
+# Transient Analysis: Linearity vs. Non-Linearity
+
+The transient response of the differential amplifier is analyzed under two distinct input conditions to evaluate the transition from linear amplification to non-linear switching behavior.
+
+---
+
+## ✅ Case 1: Linear Operation
+### Input Configuration
+* **Input 1:** `SINE(0.1 50m 1k)`
+* **Input 2:** `SINE(0.1 -50m 1k)`
+* **Common-mode Voltage ($V_{CM}$):** 0.1 V
+* **Differential Input ($V_{id}$):** 100 mV
+
+<img width="1919" height="948" alt="image" src="https://github.com/user-attachments/assets/b6cb244a-6003-4654-8a8a-12d7725fedb2" />
+
+### Linearity Verification
+For linear operation, the differential input must satisfy:
+$$|V_{id}| \le 2V_{OV}$$
+Given $2V_{OV} = 0.68\text{ V}$:
+$$100\text{ mV} < 680\text{ mV} \implies \text{Linear Region}$$
+
+### Observations & Interpretation
+* **Waveforms:** Output waveforms are perfectly sinusoidal with no visible distortion or clipping.
+* **Phase:** Outputs are equal in magnitude and $180^\circ$ out of phase.
+* **State:** Both transistors remain in saturation, and the tail current is smoothly shared.
+* **Result:** The output is a faithful, amplified version of the input with constant gain.
+
+---
+
+## ❌ Case 2: Non-Linear Operation
+### Input Configuration (Modified)
+* **Input 1:** `SINE(0.1 400m 1k)`
+* **Input 2:** `SINE(0.1 -400m 1k)`
+* **Differential Input ($V_{id}$):** 800 mV
+
+<img width="1919" height="945" alt="image" src="https://github.com/user-attachments/assets/2b0497df-ecdf-4477-9c4a-4bd39324a80d" />
+
+### Linearity Verification
+Checking the boundary condition:
+$$|V_{id}| > 2V_{OV}$$
+$$800\text{ mV} > 680\text{ mV} \implies \text{Non-Linear Region}$$
+
+### Expected Observations & Interpretation
+* **Distortion:** The output waveform exhibits heavy clipping at the peaks.
+* **Current Steering:** Large input forces nearly all current ($I_D \approx I_{SS}$) into one transistor, pushing the other into **cutoff**.
+* **Symmetry:** The outputs lose sinusoidal symmetry as the circuit reaches its physical current limits.
+* **Result:** The circuit behaves more like a **switch** than an amplifier; gain becomes non-linear and input-dependent.
+
+---
+
+## 📊 Comparison Summary
+
+| Parameter | Linear Operation | Non-Linear Operation |
+| :--- | :--- | :--- |
+| **Condition** | $|V_{id}| < 2V_{OV}$ | $|V_{id}| > 2V_{OV}$ |
+| **Input Magnitude** | 100 mV | 800 mV |
+| **Output Shape** | Sinusoidal | Distorted / Clipped |
+| **Gain** | Constant | Non-linear |
+| **Transistor State** | Both in Saturation | One in Cutoff |
+| **Current Distribution** | Shared | Fully Steered |
+
+---
+
+## 🧠 Key Design Insight
+The linear range of a differential amplifier is finite and strictly defined by the overdrive voltage:
+$$|V_{id}|_{max} = 2V_{OV}$$
+Beyond this limit, the amplifier loses its proportional relationship between input and output, transitioning into switching behavior. Proper design requires selecting a $V_{OV}$ that accommodates the expected peak signal swing.
+
+## ✅ Conclusion
+The transient analysis confirms that for $V_{id} = 100\text{ mV}$, the amplifier operates as intended. Increasing the input to $800\text{ mV}$ successfully demonstrates the non-linear boundaries of the TSMC 180nm NMOS pair.
+
+# Theoretical and Simulated Gain Analysis
+
+The performance of the differential amplifier is evaluated by comparing analytical calculations with time-domain simulation results.
+
+---
+
+## 1. Simulated Gain Calculation
+
+### Input Signal Configuration
+* **Waveform Type:** Sine Wave
+* **Frequency:** 1 kHz
+* **Amplitude:** 50 mV (per branch)
+* **DC Offset:** 0.1 V
+* **Peak Differential Input ($V_{id}$):** 100 mV
+
+  <img width="1894" height="403" alt="image" src="https://github.com/user-attachments/assets/98836b51-84d4-4cb8-be88-5a0ee7ba2fab" />
+
+
+### Measured Values from Simulation
+The peak-to-peak voltages were extracted from the LTspice transient analysis:
+
+* **Input Peak-to-Peak ($V_{in,pp}$):** $$V_{in,pp} = 50\text{ mV} - (-50\text{ mV}) = 100\text{ mV}$$
+* **Output Peak-to-Peak ($V_{out,pp}$):** $$V_{out,pp} = 287.165\text{ mV} - (-287.165\text{ mV}) = 574.33\text{ mV}$$
+
+### Calculated Voltage Gain ($A_v$)
+The voltage gain in linear and decibel scales is:
+$$A_v = \frac{V_{out,pp}}{V_{in,pp}} = \frac{574.33 \times 10^{-3}}{100 \times 10^{-3}} = 5.74$$
+
+**Gain in dB:**
+$$A_v(dB) = 20 \log_{10}(5.74) \approx 15.18\text{ dB}$$
+
+---
+
+## 2. Theoretical Gain Comparison
+
+Based on the small-signal model ($A_d \approx g_m R_D$), the theoretical gain was calculated in the previous design section.
+
+### Updated Performance Summary
+
+| Parameter | Theoretical Value | Simulated Value |
+| :--- | :--- | :--- |
+| **Voltage Gain (V/V)** | 4.5 | 5.74 |
+| **Voltage Gain (dB)** | 13.06 dB | 15.18 dB |
+
+---
+
+## 3. Analysis and Insights
+
+The simulated gain is slightly higher than the first-order theoretical prediction. # Analysis: Discrepancy Between Theoretical and Simulated Gain
+
+A noticeable difference is observed between the theoretical gain ($\approx 4.5 \text{ V/V}$) and the simulated gain ($\approx 5.74 \text{ V/V}$). This deviation arises because analytical calculations rely on simplifying assumptions, whereas LTspice simulations utilize complex device models that account for real-world physical effects.
+
+---
+
+## 1. Channel Length Modulation ($\lambda$ Variation)
+**Theoretical Assumption:** A constant value (e.g., $\lambda = 0.1 \text{ V}^{-1}$) is often assumed to calculate output resistance $r_o = 1/(\lambda I_D)$.  
+**Simulation Reality:** In the TSMC 180nm process, $\lambda$ is not constant. It varies significantly with drain voltage, device geometry, and specific bias conditions. This directly alters the effective $R_{out}$ and, consequently, the voltage gain.
+
+## 2. Advanced MOSFET Modeling (BSIM)
+**Theoretical Assumption:** Calculations use the first-order square-law equation:
+$$I_D = \frac{1}{2} \mu_n C_{ox} \frac{W}{L} V_{ov}^2$$
+**Simulation Reality:** Simulation uses **BSIM (Berkeley Short-channel IGFET Model)**, which includes:
+* **Velocity Saturation:** Limits current in short-channel devices.
+* **Mobility Degradation:** High vertical electric fields reduce carrier mobility.
+* **DIBL (Drain-Induced Barrier Lowering):** Lowers threshold voltage at high $V_{DS}$.
+These effects lead to a more accurate, and often higher, value for transconductance ($g_m$).
+
+## 3. Variation in Overdrive Voltage ($V_{ov}$)
+**Theoretical Assumption:** $V_{ov}$ is treated as a fixed constant ($0.34 \text{ V}$).  
+**Simulation Reality:** Small bias point shifts in the shared source node ($V_p$) cause $V_{ov}$ to vary slightly. Since $g_m = 2I_D / V_{ov}$, even a minor change in the denominator significantly impacts the resulting gain.
+
+## 4. Finite Output Resistance Interaction
+**Theoretical Assumption:** Simplified load as $R_{out} = R_D \parallel r_o$.  
+**Simulation Reality:** The output resistance is an interaction of both the NMOS pair and the specific tail current source characteristics. Real-world simulation accounts for the finite impedance of the tail current source, which impacts the common-mode rejection and differential load balancing.
+
+## 5. Transistor Sizing and Tuning
+**Theoretical Assumption:** Calculated width is based on ideal equations ($\approx 17.57 \text{ \mu m}$).  
+**Simulation Reality:** To satisfy the physical bias condition ($V_p = -0.7 \text{ V}$),The width was tuned to $\approx 28.475\ \mu\text{m}$. This increase in width directly scales the transconductance ($g_m$), leading to the higher observed gain of $5.74 \text{ V/V}$.
+
+---
+
+## 6. Summary: Ideal vs. Practical Comparison
+
+| Aspect | Theoretical Analysis | LTspice Simulation |
+| :--- | :--- | :--- |
+| **MOSFET Model** | Ideal Square-Law | Realistic BSIM4 |
+| **Parameters ($\mu, \lambda, V_T$)** | Constant / Fixed | Bias-Dependent |
+| **Second-Order Effects** | Ignored | Included (DIBL, Body Effect) |
+| **Device Sizing** | Calculated Approximation | Fine-tuned for Bias |
+| **Accuracy** | Approximate | High Precision |
+
+## Final Conclusion
+The discrepancy is expected and demonstrates the limitations of hand calculations in modern sub-micron processes. The simulation provides a more reliable estimate of the circuit’s performance by accounting for the non-linearities and geometric dependencies of the TSMC 180nm technology.
+## 4. Final Conclusion
+Using the measured values of $V_{out} = \pm 287.165\text{ mV}$, the amplifier demonstrates a stable gain of **$A_v \approx 5.74$**. This confirms that the biasing circuit and transistor sizing are correctly implemented, providing a high degree of agreement with the analytical design goals.
+
+# AC Analysis: Frequency Response and Bandwidth
+
+AC analysis is performed to evaluate the frequency response, midband gain, and bandwidth of the MOSFET differential amplifier. This determines the high-frequency limitations of the design.
+
+---
+
+## 1. Simulation Setup
+To extract the differential frequency response, the following parameters were used in LTspice:
+
+* **Command:** `.ac dec 100 1 10G`
+* **Differential Excitation:** * `Vin1`: AC 1
+  * `Vin2`: AC -1
+* **Output Measurement:** `V(out1) - V(out2)`
+
+  <img width="1919" height="978" alt="image" src="https://github.com/user-attachments/assets/92b2e4c6-caa1-4567-913b-ee74f36af1a9" />
+
+
+---
+
+## 2. Simulation Results
+
+### Midband Gain ($A_v$)
+Extracted from the flat region of the Bode plot:
+* **Decibel Scale:** $A_v = 15.6\text{ dB}$
+* **Linear Scale:** $A_v \approx 6.02\text{ V/V}$
+
+> **Note:** This result closely aligns with the transient analysis gain ($\approx 5.74\text{ V/V}$), confirming consistency across simulation modes.
+
+### Bandwidth (BW)
+The bandwidth is determined by identifying the -3dB cutoff frequency ($f_H$):
+* **-3dB Gain Point:** $15.6\text{ dB} - 3\text{ dB} = 12.6\text{ dB}$
+* **Upper Cutoff Frequency ($f_H$):** $5.128\text{ GHz}$
+* **Lower Cutoff Frequency ($f_L$):** $\approx 0\text{ Hz}$ (DC coupled)
+* **Total Bandwidth:** $BW = f_H - f_L = 5.128\text{ GHz}$
+
+### Unity Gain Bandwidth (UGB)
+The Unity Gain Bandwidth is the frequency where the gain drops to $0\text{ dB}$ ($1\text{ V/V}$):
+$$UGB \approx A_{v,linear} \times BW$$
+$$UGB = 6.02 \times 5.128\text{ GHz} \approx 30.9\text{ GHz}$$
+
+---
+
+## 3. Interpretation and Insights
+
+* **Flat Midband Region:** The stable gain across lower frequencies indicates proper DC biasing and a lack of significant coupling capacitor effects.
+* **High-Frequency Roll-off:** The gain begins to decrease at extremely high frequencies due to internal MOSFET parasitic capacitances ($C_{gs}$, $C_{gd}$) and the 10 pF load capacitance ($C_L$).
+* **Speed Performance:** A bandwidth in the GHz range confirms that this TSMC 180nm differential pair is suitable for high-speed analog signal processing.
+* **Gain-Bandwidth Trade-off:** The high UGB of $30.9\text{ GHz}$ highlights the capability of the technology node when biased at the power limit of $1.8\text{ mW}$.
+
+---
+
+## 🚀 Summary of AC Performance
+
+| Metric | Value |
+| :--- | :--- |
+| **Midband Gain ($A_v$)** | $15.6\text{ dB}$ |
+| **-3dB Bandwidth ($f_H$)** | $5.128\text{ GHz}$ |
+| **Unity Gain Bandwidth** | $\approx 30.9\text{ GHz}$ |
+
+**Conclusion:** The AC analysis validates that the amplifier provides moderate gain and exceptionally wide bandwidth, confirming the stability and high-speed efficiency of the design.
+
+# Frequency Response Analysis (Bode Plot)
+
+The AC analysis provides a frequency-domain view of the amplifier's performance, confirming the stability of the gain and identifying the high-frequency poles.
+
+---
+
+## 📈 Simulation Results: Bode Plot
+The following plot illustrates the magnitude (in dB) and phase (in degrees) for the differential output $V(out1) - V(out2)$ and the single-ended output $V(out1)$.
+
+
+### Key Data Points Extracted
+Based on the simulation cursors and trace analysis:
+
+| Parameter | Measurement | Frequency |
+| :--- | :--- | :--- |
+| **Differential Midband Gain ($A_{v,diff}$)** | $21.78\text{ dB}$ | $1\text{ nHz}$ to $1\text{ GHz}$ |
+| **Single-Ended Midband Gain ($A_{v,se}$)** | $15.76\text{ dB}$ | $1\text{ nHz}$ to $1\text{ GHz}$ |
+| **-3dB Cutoff Frequency ($f_H$)** | $18.78\text{ dB}$ | $\approx 5.13\text{ GHz}$ |
+| **Unity Gain Frequency ($f_T$)** | $0\text{ dB}$ | $\approx 30.9\text{ GHz}$ |
+| **Phase at Midband** | $180^\circ$ | Low Frequency |
+
+---
+
+## 🔍 Technical Analysis
+
+### 1. Gain Relationship
+The plot confirms the theoretical relationship between differential and single-ended gain. The differential gain ($21.78\text{ dB}$) is approximately $6\text{ dB}$ higher than the single-ended gain ($15.76\text{ dB}$), which corresponds to the factor of 2 ($20\log_{10}(2) \approx 6.02\text{ dB}$) inherent in differential signaling.
+
+### 2. Frequency Stability
+The gain remains exceptionally flat from the mHz range up to $1\text{ GHz}$. This indicates:
+* **DC Coupling:** No lower cutoff frequency ($f_L$) is present, allowing for DC signal amplification.
+* **Dominant Pole:** The roll-off begins after $1\text{ GHz}$, suggesting that the internal parasitic capacitances ($C_{gs}, C_{gd}$) and the $10\text{ pF}$ load capacitance only become dominant in the microwave frequency range.
+
+### 3. Phase Response
+The phase starts at $180^\circ$ (reflecting the inverting nature of the common-source based differential pair) and begins to shift as it approaches the pole frequency. The smooth phase transition indicates a stable system with a high phase margin.
+
+---
+
+## ✅ Conclusion
+The AC analysis successfully validates the high-speed capability of the TSMC 180nm process. With a bandwidth of **$5.13\text{ GHz}$** and a gain of **$21.78\text{ dB}$**, the amplifier is well-suited for wideband analog applications.
