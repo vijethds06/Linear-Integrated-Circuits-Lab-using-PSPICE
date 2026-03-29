@@ -612,3 +612,510 @@ The phase starts at $180^\circ$ (reflecting the inverting nature of the common-s
 
 ## ✅ Conclusion
 The AC analysis successfully validates the high-speed capability of the TSMC 180nm process. With a bandwidth of **$5.13\text{ GHz}$** and a gain of **$21.78\text{ dB}$**, the amplifier is well-suited for wideband analog applications.
+
+
+
+# Circuit 2:-
+
+
+
+# Circuit Configuration: Differential Amplifier with Active Load (Current Mirror)
+
+The active load configuration is an advanced MOSFET differential amplifier where passive resistive loads are replaced by a **PMOS current mirror**. This design significantly increases output resistance and voltage gain while reducing chip area and improving power efficiency.
+
+---
+
+## 1. Topology and Circuit Architecture
+The circuit is composed of three primary functional blocks: the input differential pair, the tail current source, and the active load current mirror.
+
+<img width="1625" height="826" alt="image" src="https://github.com/user-attachments/assets/ea9f4bd3-646c-4a24-bad1-05ed3d290823" />
+
+
+
+### A. Input Differential Pair (NMOS)
+Consists of two matched NMOS transistors ($M_1, M_2$).
+* **Function:** Converts the differential input voltage ($V_{id}$) into a current difference through current steering.
+* **Connections:** * **Gates:** Connected to $V_{in1}$ and $V_{in2}$.
+    * **Sources:** Coupled at the common tail node $V_p$.
+    * **Drains:** Tied to the PMOS active loads ($M_4, M_5$).
+
+### B. Tail Current Source
+Implemented using an NMOS transistor ($M_3$).
+* **Function:** Provides a constant quiescent current ($I_{SS}$), ensuring stable biasing and high Common-Mode Rejection (CMR).
+* **Connections:** Drain to $V_p$, Source to $V_{SS}$, and Gate to a stable bias voltage $V_B$.
+
+### C. Active Load (PMOS Current Mirror)
+Consists of two matched PMOS transistors ($M_4, M_5$).
+* **Diode-Connected PMOS ($M_4$):** The gate and drain are shorted to establish the reference current from the $M_1$ branch and set the $V_{SG}$ for the mirror.
+* **Mirror PMOS ($M_5$):** Mirrors the current from $M_4$ into the $M_2$ branch. This configuration effectively converts the differential current into a high-swing output voltage.
+
+---
+
+## 2. Terminal Mapping
+
+| Terminal | Connection | Function |
+| :--- | :--- | :--- |
+| **$V_{in1}$** | Gate of $M_1$ | Non-inverting input |
+| **$V_{in2}$** | Gate of $M_2$ | Inverting input |
+| **$V_{out1}$** | Drain of $M_1/M_4$ | Internal node voltage |
+| **$V_{out2}$** | Drain of $M_2/M_5$ | High-gain output node |
+
+---
+
+## 3. Small-Signal Performance
+
+### Voltage Gain ($A_v$)
+Because the active load acts as a high-impedance current source rather than a simple resistor, the output resistance ($R_{out}$) is dramatically increased:
+$$A_v = -g_m (r_{o,n} \parallel r_{o,p})$$
+
+Where:
+* **Transconductance:** $g_m = \frac{2I_D}{V_{ov}}$
+* **Output Resistance:** $r_o = \frac{1}{\lambda I_D}$
+
+### Comparison: Resistive vs. Active Load
+
+| Feature | Resistive Load | Active Load |
+| :--- | :--- | :--- |
+| **Load Element** | Resistor $R_D$ | PMOS Current Mirror |
+| **Output Resistance** | Moderate ($R_D \parallel r_o$) | Very High ($r_{o,n} \parallel r_{o,p}$) |
+| **Voltage Gain** | Moderate | **High** 🚀 |
+| **Silicon Area** | Large (Resistors are bulky) | Compact (Transistor-only) |
+| **Efficiency** | Lower | Higher |
+
+---
+
+## 4. Design Insight
+In a resistive load, increasing gain requires increasing $R_D$, which eventually limits the DC headroom and forces the transistors out of saturation. By using an **Active Load**, we achieve the equivalent of a massive resistance ($r_o$ is typically in the hundreds of $k\Omega$ to $M\Omega$ range) without the massive DC voltage drop, allowing for high gain even with low supply voltages like $0.9\text{V}$.
+
+## 5. Summary Intuition
+The functional flow of this architecture can be summarized as:
+
+**$\text{Voltage Difference} \rightarrow \text{Current Steering} \rightarrow \text{Current Mirroring} \rightarrow \text{High-Gain Voltage Output}$**
+
+
+# Working Principle: MOSFET Differential Amplifier with Active Load
+
+The MOSFET differential amplifier with an active load operates by steering a constant tail current between two transistors based on the input voltage difference. A PMOS current mirror is utilized to convert this current difference into a high-gain voltage output.
+
+---
+
+## 1. Circuit Architecture
+The circuit is composed of three primary sections:
+* **Differential Pair ($M_1, M_2$):** Matched NMOS transistors that perform the input voltage-to-current conversion.
+* **Tail Current Source ($M_3$):** Supplies a constant quiescent current $I_{SS}$.
+* **Active Load ($M_4, M_5$):** A PMOS current mirror that replaces passive resistors to provide high output impedance.
+
+### Fundamental Constraints
+* **Current Sum:** $I_{D1} + I_{D2} = I_{SS}$ (The total current is fixed and redistributed).
+* **Differential Input:** $V_{id} = V_{in1} - V_{in2}$ (Controls the current split between branches).
+
+---
+
+## 2. Operating Modes
+
+### Common-Mode Operation (Balanced Condition)
+When $V_{in1} = V_{in2}$:
+* **Equal Biasing:** $V_{GS1} = V_{GS2}$, leading to an even current split: $I_{D1} = I_{D2} = \frac{I_{SS}}{2}$.
+* **Mirror Action:** $M_4$ (diode-connected) sets the gate voltage for $M_5$, forcing $I_{D4} = I_{D5}$.
+* **Differential Output:** Since the currents and transistor characteristics are matched, $V_{out1} = V_{out2}$, resulting in $V_{out,diff} = 0$.
+* **Result:** High Common-Mode Rejection Ratio (CMRR).
+
+### Differential Operation (Current Steering)
+When $V_{in1} > V_{in2}$:
+1. **Input Effect:** $V_{GS1}$ increases ($\uparrow$) and $V_{GS2}$ decreases ($\downarrow$).
+2. **Steering:** $I_{D1}$ increases while $I_{D2}$ decreases to satisfy the $I_{SS}$ constant current constraint.
+3. **Mirroring:** The PMOS load $M_5$ mirrors the increased current from $M_1$ ($I_{D5} = I_{D1}$).
+4. **Net Output Current:** At the output node ($V_{out2}$), the net current is the difference between the mirrored current and the steered current:
+   $$I_{out} = I_{D5} - I_{D2} = I_{D1} - I_{D2}$$
+
+---
+
+## 3. Current-to-Voltage Conversion
+The output voltage is the product of the differential current and the output resistance:
+$$V_{out} = I_{out} \cdot R_{out}$$
+Where:
+$$R_{out} = r_{o,n} \parallel r_{o,p}$$
+
+**Design Insight:** Because $r_o$ (intrinsic transistor resistance) is significantly larger than a typical passive resistor $R_D$, even a minor current difference results in a massive voltage swing, leading to very high gain.
+
+---
+
+## 4. Small-Signal vs. Large-Signal Behavior
+
+| Feature | Small-Signal ($|V_{id}| \le \sqrt{2}V_{ov}$) | Large-Signal ($|V_{id}| > \sqrt{2}V_{ov}$) |
+| :--- | :--- | :--- |
+| **Transistor State** | Both $M_1, M_2$ in Saturation | One transistor in Cutoff |
+| **Current Change** | Linear/Smooth | Fully Steered ($I_D \approx I_{SS}$) |
+| **Output Shape** | Proportional to Input | Saturated/Clipped |
+| **Function** | Linear Amplifier | Switching Behavior |
+
+---
+
+## 5. Summary of Component Roles
+
+| Component | Role |
+| :--- | :--- |
+| **$M_1, M_2$** | Convert input voltage difference into a current difference. |
+| **$M_3$** | Provides constant bias current and improves CMRR. |
+| **$M_4, M_5$** | Mirrors current and provides the high-impedance load required for gain. |
+
+---
+
+## 6. Technical Conclusion
+The active load configuration is a powerful architecture because it:
+1. **Eliminates bulky resistors:** Reduces silicon area.
+2. **Maximizes Gain:** Leverages the high output resistance of MOSFETs in saturation.
+3. **Enhances Efficiency:** Provides high voltage swing with minimal power consumption.
+
+**Intuition:** The circuit functions as a **$\text{Voltage} \rightarrow \text{Current} \rightarrow \text{Mirrored Current} \rightarrow \text{Large Voltage}$** converter.
+# Design Calculations: Differential Amplifier with Active Load
+
+## 1. Design Parameters and Process Constants
+The following parameters are utilized for the TSMC 180nm process:
+
+| Parameter | Symbol | Value |
+| :--- | :--- | :--- |
+| **Supply Voltage (Positive)** | $V_{DD}$ | 0.9 V |
+| **Supply Voltage (Negative)** | $V_{SS}$ | -0.9 V |
+| **Power Constraint** | $P$ | $\le 1.8\text{ mW}$ |
+| **Channel Length** | $L$ | 480 nm |
+| **Input/Output CM Voltage** | $V_{ICM} / V_{OCM}$ | 0 V |
+| **Tail Node Voltage** | $V_p$ | -0.7 V |
+| **Threshold Voltage (NMOS/PMOS)** | $V_{Tn} / V_{Tp}$ | $0.36\text{ V} / -0.36\text{ V}$ |
+| **NMOS Process Parameter** | $\mu_n C_{ox}$ | 236.5 $\mu\text{A/V}^2$ |
+| **PMOS Process Parameter** | $\mu_p C_{ox}$ | 118 $\mu\text{A/V}^2$ |
+
+---
+
+## 2. Power and Tail Current Allocation
+The total power consumption is:
+$$P = (V_{DD} - V_{SS}) \cdot I_{SS}$$
+$$1.8 \cdot I_{SS} \le 1.8 \times 10^{-3} \implies I_{SS} \le 1\text{ mA}$$
+
+**Design Choice:** $I_{SS} = 1\text{ mA}$ is selected to maximize transconductance.
+For a balanced pair: $I_{D1} = I_{D2} = 0.5\text{ mA}$.
+
+---
+
+## 3. NMOS Differential Pair Sizing ($M_1, M_2$)
+To maintain $V_p = -0.7\text{ V}$ with $V_{ICM} = 0\text{ V}$:
+* **Gate-Source Voltage:** $V_{GS} = V_G - V_S = 0 - (-0.7) = 0.7\text{ V}$
+* **Overdrive Voltage:** $V_{OV} = V_{GS} - V_{Tn} = 0.7 - 0.36 = 0.34\text{ V}$
+* **Saturation Check:** $V_{DS} = V_D - V_S = 0 - (-0.7) = 0.7\text{ V}$. Since $0.7 > 0.34$, $M_1/M_2$ are in saturation.
+
+**Width Calculation:**
+$$W = \frac{2 I_D L}{\mu_n C_{ox} V_{OV}^2} = \frac{2 \cdot 0.5\text{mA} \cdot 480\text{nm}}{236.5\mu\text{A/V}^2 \cdot (0.34)^2} \approx 17.57\ \mu\text{m}$$
+*Final tuned width (via simulation):* **$W_n \approx 28.5\ \mu\text{m}$**
+
+---
+
+## 4. PMOS Active Load Sizing ($M_4, M_5$)
+The PMOS load must support $0.5\text{ mA}$ per branch with $V_{OCM} = 0\text{ V}$.
+* **Source-Gate Voltage:** $V_{SG} = V_{DD} - V_{OCM} = 0.9 - 0 = 0.9\text{ V}$
+* **Overdrive Voltage:** $V_{OVp} = V_{SG} - |V_{Tp}| = 0.9 - 0.36 = 0.54\text{ V}$
+
+**Width Calculation:**
+$$W = \frac{2 I_D L}{\mu_p C_{ox} V_{OVp}^2} = \frac{2 \cdot 0.5\text{mA} \cdot 480\text{nm}}{118\mu\text{A/V}^2 \cdot (0.54)^2} \approx 13.95\ \mu\text{m}$$
+*Final tuned width:* **$W_p \approx 14\ \mu\text{m}$**
+
+---
+
+## 5. Tail Current Source Design ($M_3$)
+To sink the full $I_{SS} = 1\text{ mA}$:
+* **Gate Bias:** $V_B = -0.2\text{ V}$ (Source is at $V_{SS} = -0.9\text{ V}$)
+* **$V_{GS3}$:** $-0.2 - (-0.9) = 0.7\text{ V}$
+* **$V_{OV3}$:** $0.7 - 0.36 = 0.34\text{ V}$
+
+**Width Calculation:**
+$$W_3 = \frac{2 I_{SS} L}{\mu_n C_{ox} V_{OV3}^2} \approx 35.14\ \mu\text{m}$$
+*Final tuned width:* **$W_3 \approx 35\ \mu\text{m}$**
+
+---
+
+## 📊 Final Design Summary
+
+| Transistor | Function | Width ($W$) |
+| :--- | :--- | :--- |
+| **$M_1, M_2$** | Input Differential Pair | $28.5\ \mu\text{m}$ |
+| **$M_3$** | Tail Current Source | $35.0\ \mu\text{m}$ |
+| **$M_4, M_5$** | PMOS Active Load | $14.0\ \mu\text{m}$ |
+
+## ✅ Conclusion
+The active load differential amplifier was successfully designed within the $1.8\text{ mW}$ power constraint. By replacing resistors with a PMOS current mirror, the design achieves high output impedance and increased gain while maintaining stable saturation across all branches.
+
+# DC Analysis: Active Load Differential Amplifier
+
+## 1. Objective
+To verify the DC operating point of the MOSFET differential amplifier with an active load. This analysis ensures that all transistors operate in the saturation region while satisfying the specified power and voltage constraints.
+
+---
+
+## 2. Simulation Setup
+The DC operating point was extracted using the LTspice directive `.op` with the following parameters:
+
+| Parameter | Symbol | Value |
+| :--- | :--- | :--- |
+| **Positive Supply** | $V_{DD}$ | +0.9 V |
+| **Negative Supply** | $V_{SS}$ | -0.9 V |
+| **Input Voltages** | $V_{in1}, V_{in2}$ | 0 V |
+| **Bias Voltage** | $V_B$ | -0.2 V |
+
+### Transistor Dimensions (Final Optimized)
+| Transistor | Type | Width ($W$) | Length ($L$) |
+| :--- | :--- | :--- | :--- |
+| **$M_1, M_2$** | NMOS (Pair) | $48.45\ \mu\text{m}$ | $0.48\ \mu\text{m}$ |
+| **$M_3, M_4$** | PMOS (Load) | $50.00\ \mu\text{m}$ | $0.48\ \mu\text{m}$ |
+| **$M_5$** | NMOS (Tail) | $90.00\ \mu\text{m}$ | $0.48\ \mu\text{m}$ |
+
+---
+
+## 3. Simulation Results (Operating Point)
+<img width="674" height="621" alt="image" src="https://github.com/user-attachments/assets/e7171ad2-f3e1-4242-89c5-29e1e60ec722" />
+
+### Node Voltages
+* **$V_{DD}$ / $V_{SS}$:** $0.9\text{ V}$ / $-0.9\text{ V}$
+* **Tail Node ($V_p$):** $-0.785\text{ V}$
+* **Output Nodes ($V_{out1}, V_{out2}$):** $0.074\text{ V}$
+
+### Quiescent Currents
+* **Tail Current ($I_{SS}$):** $0.955\text{ mA}$
+* **Branch Currents ($I_{D1}, I_{D2}$):** $0.478\text{ mA}$
+
+---
+
+## 4. Verification of Design Conditions
+
+### A. Current Splitting
+$$I_{D1} \approx I_{D2} \approx \frac{I_{SS}}{2}$$
+$$0.478\text{ mA} \approx \frac{0.955\text{ mA}}{2} = 0.4775\text{ mA} \quad \text{(Verified } \checkmark\text{)}$$
+This confirms proper differential symmetry and balanced operation.
+
+### B. Output Symmetry
+$V_{out1} = V_{out2} = 0.074\text{ V}$. The matching of these voltages confirms the effectiveness of the PMOS current mirror and the absence of a DC differential offset.
+
+### C. Saturation Region Check
+* **NMOS Pair ($M_1, M_2$):**
+  $V_{DS} = V_D - V_S = 0.074 - (-0.785) = 0.859\text{ V}$
+  Since $V_{DS} (0.859\text{ V}) > V_{OV} (0.34\text{ V})$, the NMOS transistors are in **Saturation**.
+* **PMOS Load ($M_3, M_4$):**
+  $V_{SD} = V_S - V_D = 0.9 - 0.074 = 0.826\text{ V}$
+  Since $V_{SD} (0.826\text{ V}) > V_{OVp} (0.54\text{ V})$, the PMOS transistors are in **Saturation**.
+
+---
+
+## 5. Comparison: Ideal vs. Simulated Values
+
+| Parameter | Ideal Design | Simulated Result | Deviation |
+| :--- | :--- | :--- | :--- |
+| **Tail Current ($I_{SS}$)** | $1.0\text{ mA}$ | $0.955\text{ mA}$ | $-4.5\%$ |
+| **Tail Voltage ($V_p$ )** | $-0.7\text{ V}$ | $-0.785\text{ V}$ | $-12\%$ |
+| **Output Voltage ($V_{out}$)**| $0\text{ V}$ | $0.074\text{ V}$ | $+74\text{ mV}$ |
+
+### Reasons for Deviation
+1. **Channel Length Modulation:** Theoretical formulas assume infinite $r_o$; simulation accounts for finite $r_o$ which pulls the DC nodes slightly.
+2. **Body Effect & DIBL:** The 180nm model includes Drain-Induced Barrier Lowering, which shifts the threshold voltage based on the $V_{DS}$ of the tail transistor.
+3. **Mobility Degradation:** High vertical electric fields in the channel reduce carrier mobility, slightly lowering the expected current.
+4. **Sub-threshold Conduction:** BSIM models account for current flow even near $V_T$, affecting the precise $V_{GS}$ required for a given $I_D$.
+
+---
+
+## 6. Final Conclusion
+The DC analysis validates that the active load differential amplifier is correctly biased. Despite minor physical deviations, all transistors remain firmly in the saturation region, satisfying the necessary conditions for high-gain linear amplification.
+
+
+
+# Transient Analysis: Time-Domain Response
+
+## 1. Objective
+To analyze the time-domain response of the MOSFET differential amplifier with an active load and verify its performance in both the linear (small-signal) and non-linear (large-signal) operating regions.
+
+---
+
+## 2. Simulation Setup
+The transient analysis was performed using the following LTspice directive:
+* **Directive:** `.tran 5m`
+* **Input Frequency:** $1\text{ kHz}$ (allows for multiple cycles of observation)
+
+---
+
+## 3. Case 1: Linear Region Analysis (Small-Signal)
+
+### Input Configuration
+* **$V_{in1}$ / $V_{in2}$:** $50\text{ mV}$ / $-50\text{ mV}$ (Symmetric Sine)
+* **Differential Input ($V_{id}$):** $100\text{ mV}$
+
+### Linearity Verification
+
+<img width="1919" height="900" alt="image" src="https://github.com/user-attachments/assets/ac34964f-02ae-4afd-b2a1-47ba274df782" />
+
+Condition for linear operation: $|V_{id}| < 2V_{OV}$
+$$2V_{OV} = 2 \times 0.34 = 0.68\text{ V}$$
+$$100\text{ mV} < 680\text{ mV} \quad \checkmark \text{ (Linear Region Verified)}$$
+
+### Measured Results & Gain
+| Parameter | Value |
+| :--- | :--- |
+| **Input Peak-to-Peak ($V_{in,pp}$)** | $100\text{ mV}$ |
+| **Output Peak-to-Peak ($V_{out,pp}$)** | $366\text{ mV}$ |
+| **Voltage Gain ($A_v$)** | $3.66$ |
+| **Gain in dB** | $\approx 11.27\text{ dB}$ |
+
+**Inference:** In this mode, the circuit operates as a high-fidelity linear amplifier. Both NMOS transistors remain in saturation, and the tail current is smoothly distributed between the two branches.
+
+---
+
+## 4. Case 2: Non-Linear Region Analysis (Large-Signal)
+
+### Input Configuration
+* **$V_{in1}$ / $V_{in2}$:** $400\text{ mV}$ / $-400\text{ mV}$
+* **Differential Input ($V_{id}$):** $800\text{ mV}$
+
+### Linearity Verification
+$$800\text{ mV} > 680\text{ mV} \quad \times \text{ (Non-Linear Region)}$$
+
+### Observed Behavior
+
+<img width="1919" height="908" alt="image" src="https://github.com/user-attachments/assets/ae7c6496-d8a3-4524-921e-32d650328b4c" />
+
+* **Waveform Distortion:** The output is heavily distorted and clipped at the peaks.
+* **Current Steering:** One transistor carries the full tail current ($I_D \approx I_{SS}$) while the other enters the **cutoff region**.
+* **Inference:** The circuit transitions from an amplifier to a **switching device**. Gain becomes non-linear and highly dependent on the input magnitude.
+
+---
+
+## 5. Comparison: Linear vs. Non-Linear Operation
+
+| Parameter | Linear Region | Non-Linear Region |
+| :--- | :--- | :--- |
+| **Input Magnitude ($V_{id}$)** | $100\text{ mV}$ | $800\text{ mV}$ |
+| **Output Waveform** | Pure Sinusoidal | Distorted / Clipped |
+| **Gain** | Constant | Variable / Compressed |
+| **Transistor State** | Both Saturation | One Cutoff |
+| **Current Distribution** | Shared/Balanced | Fully Steered |
+
+---
+
+## 6. Analysis of Deviations
+Even in the linear region, slight deviations from ideal behavior occur due to:
+1. **Finite Output Resistance:** $R_{out} = r_{o,n} \parallel r_{o,p}$. Finite $r_o$ values in the TSMC 180nm process reduce the achievable gain.
+2. **Channel Length Modulation:** Causes variations in drain current as $V_{DS}$ swings.
+3. **Mobility Degradation:** High vertical electric fields reduce carrier mobility and transconductance ($g_m$).
+4. **Current Mirror Mismatch:** Minor variations in the PMOS mirror load lead to small DC offsets and gain reduction.
+
+---
+
+## 7. Conclusion
+The transient response validates the design of the active load differential amplifier. The results confirm that the circuit provides stable, undistorted amplification for signals within the $680\text{ mV}$ limit and correctly exhibits current-steering saturation beyond that threshold.
+
+# AC Analysis: Frequency Response (Active Load)
+
+## 1. Objective
+To determine the small-signal voltage gain, bandwidth, and Gain-Bandwidth Product (GBW) of the MOSFET differential amplifier with an active load using frequency-domain simulation.
+
+---
+
+## 2. Simulation Setup
+The AC analysis was performed using the following LTspice configuration:
+
+* **Directive:** `.ac dec 10 0.1n 1000G`
+* **Input Configuration (Differential):**
+  * `Vin1`: DC 0, AC 1
+  * `Vin2`: DC 0, AC -1
+* **Output Measurement:** The differential output $V(out1) - V(out2)$ is plotted in dB using the expression:
+  $$20 \log_{10}(V(out1) - V(out2))$$
+
+---
+
+## 3. Simulation Results
+
+### Midband Gain ($A_v$)
+Extracted from the flat region of the Bode plot:
+* **Decibel Scale:** $A_v \approx 12\text{ dB}$
+* **Linear Scale:** $A_v = 10^{\frac{12}{20}} \approx 3.98 \approx 4\text{ V/V}$
+
+### Bandwidth (BW)
+The bandwidth is determined at the $-3\text{ dB}$ point from the midband gain:
+* **-3 dB Point:** $12\text{ dB} - 3\text{ dB} = 9\text{ dB}$
+* **Cutoff Frequency ($f_H$):** $\approx 1\text{ GHz}$
+* **Resulting Bandwidth:** $BW \approx 1\text{ GHz}$
+
+### Gain-Bandwidth Product (GBW)
+$$GBW = A_v \times BW$$
+$$GBW = 4 \times 1\text{ GHz} = 4\text{ GHz}$$
+
+---
+
+## 4. Observations and Analysis
+
+<img width="1919" height="876" alt="image" src="https://github.com/user-attachments/assets/0cf37c4c-b9f9-40c2-b780-9e30dc3eae37" />
+
+
+* **Flat Midband:** The gain remains constant across a wide frequency range, indicating stable biasing.
+* **Roll-off Behavior:** The response exhibits a single-pole roll-off starting at $1\text{ GHz}$ with a slope of $-20\text{ dB/decade}$.
+* **High-Frequency Limits:** The gain decreases at high frequencies due to parasitic effects and internal MOSFET capacitances ($C_{gs}, C_{gd}$).
+
+### Theoretical Comparison
+The theoretical gain for an active load is $A_v = g_m (r_{o,n} \parallel r_{o,p})$.
+
+| Parameter | Theoretical | Simulated |
+| :--- | :--- | :--- |
+| **Gain (V/V)** | $\approx 4\text{--}6$ | $\approx 4$ |
+| **Bandwidth** | High | $1\text{ GHz}$ |
+| **GBW** | High | $4\text{ GHz}$ |
+
+---
+
+## 5. Reasons for Deviation from Ideal Values
+The slight reduction in simulated gain compared to the maximum theoretical potential is due to:
+1. **Finite Output Resistance ($r_o$):** Real MOSFETs in the 180nm node have lower $r_o$ than ideal models, which shunts the output.
+2. **Channel Length Modulation:** $\lambda$ effects reduce the effective impedance of the PMOS current mirror.
+3. **Parasitic Capacitances:** Internal junction and gate capacitances introduce poles that limit the high-frequency reach.
+4. **Mobility Degradation:** High vertical electric fields in the channel reduce $g_m$ and consequently lower the midband gain.
+
+---
+
+## 6. Conclusion
+The AC analysis confirms that the active load differential amplifier provides a stable midband gain of **$12\text{ dB}$** and a high bandwidth of **$1\text{ GHz}$**. The wide Gain-Bandwidth Product of **$4\text{ GHz}$** validates the efficiency of the active load configuration in providing high-speed performance with minimal silicon area.
+
+
+# Conclusion: MOSFET Differential Amplifier Analysis (Resistive Load)
+
+The MOSFET differential amplifier with resistive load was successfully designed, simulated, and analyzed under the specified TSMC 180nm constraints. The project demonstrates a robust correlation between theoretical analog design and practical circuit simulation.
+
+---
+
+## 🔑 Key Achievement Summary
+
+### 1. DC Biasing and Power Efficiency
+The biasing conditions were verified through DC analysis, ensuring both NMOS transistors operate firmly in the **saturation region**. 
+* The selected tail current ($I_{SS} = 1\text{ mA}$) successfully maximized transconductance ($g_m$) while remaining strictly within the **$1.8\text{ mW}$ power constraint**.
+* The alignment between calculated and simulated bias points confirms the accuracy of the initial design parameters.
+
+### 2. Transient Performance and Linearity
+Transient analysis validated the amplifier’s integrity in the time domain:
+* **Linear Region:** For a differential input of $V_{id} = 100\text{mV}$, the circuit produced a sinusoidal, undistorted output with a measured gain of **$A_v \approx 5.74\text{ V/V}$**.
+* **Non-Linear Transition:** Simulations confirmed that for larger signals ($|V_{id}| > 2V_{ov}$), the amplifier transitions into non-linear behavior, exhibiting signal clipping and current steering saturation.
+
+### 3. AC Response and High-Frequency Capability
+The frequency response analysis highlights the suitability of this design for high-speed applications:
+* **Midband Gain:** $15.6\text{ dB}$ ($\approx 6.02\text{ V/V}$)
+* **-3dB Bandwidth:** $5.128\text{ GHz}$
+* **Gain-Bandwidth Product (GBP):** $\approx 30.87\text{ GHz}$
+
+---
+
+## 🔬 Analysis of Deviations
+While the simulation results show high agreement with theoretical models, a small deviation in gain was noted ($4.5\text{ V/V}$ theoretical vs $5.74\text{ V/V}$ simulated). This is attributed to realistic non-ideal effects present in the BSIM simulation models, including:
+* **Channel Length Modulation ($\lambda$):** Affecting the final output resistance ($r_o$).
+* **Mobility Degradation:** Influencing the effective transconductance at high electric fields.
+* **Internal Parasitics:** Intrinsic MOSFET capacitances that influence the high-frequency roll-off.
+
+---
+
+## 🏁 Final Statement
+The resistive load differential amplifier serves as a stable, high-bandwidth foundation for analog signal processing. The design provides **moderate gain**, **exceptional bandwidth**, and **predictable linearity**, making it a reliable building block for more complex integrated systems like operational amplifiers and comparators.
+
+
+
+# Circuit 3 :-
+
